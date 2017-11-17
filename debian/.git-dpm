@@ -6,3 +6,6 @@
 moxa-pushbtn_1.0.0.orig.tar.gz
 8c26db1d6d48dc7cb0d22063a91305d461f717f4
 2532
+debianTag="debian/%e%v"
+patchedTag="patched/%e%v"
+upstreamTag="upstream/%e%u"
