@@ -1,0 +1,14 @@
+Source: moxa-pushbtn
+Section: misc
+Priority: required
+Maintainer: Fero JD Zhou <FeroJD.Zhou@moxa.com>
+Build-Depends: debhelper (>= 10), libjson-c-dev
+Standards-Version: 4.1.1
+Homepage: https://www.moxa.com/
+
+Package: moxa-pushbtn
+Architecture: any
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
+Description: Moxa pushbtn detect program
+ push button for Moxa platform
