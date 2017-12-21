@@ -1,4 +1,4 @@
-moxa-pushbtn (1.0.0-1) unstable; urgency=low
+moxa-pushbtn (1.0.0+deb9) stretch; urgency=low
 
   * Initial release.
 
