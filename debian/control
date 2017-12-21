@@ -1,14 +1,15 @@
-Source: moxa-pushbtn
+Source: moxa-push-button
 Section: misc
 Priority: required
 Maintainer: Fero JD Zhou <FeroJD.Zhou@moxa.com>
 Build-Depends: debhelper (>= 10), libjson-c-dev
-Standards-Version: 4.1.1
+Standards-Version: 4.1.2
 Homepage: https://www.moxa.com/
 
-Package: moxa-pushbtn
+Package: moxa-push-button
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Moxa pushbtn detect program
- push button for Moxa platform
+ Detect the signal from push button and perform the cersion actions.
+ Action can be turn the specified LED on/off or execute a program.
