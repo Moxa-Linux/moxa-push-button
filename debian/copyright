@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: moxa-pushbtn
-Source: http://gitlab.syssw.moxa.com:8888/FeroJD_Zhou/moxa-pushbtn
+Source: http://gitlab.syssw.moxa.com:8888/MXcore-Package/moxa-push-button
 
 Files: *
 Copyright: 2017 Fero JD Zhou <FeroJD.Zhou@moxa.com>
