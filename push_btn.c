@@ -1,18 +1,17 @@
-/*##############################################################################
-# Copyright (C) MOXA Inc. All rights reserved.
-#
-# This software is distributed under the terms of the
-# MOXA License.  See the file COPYING-MOXA for details.
-#
-# Purpose : Push button device
-# Return : 0 on success; Other wise, modification failed.
-# Author : Lock Lin
-# Date : 2014-03-17
-# Version : 1.0
-# Notes :
-# 2016-2017 Fero JD Zhou <FeroJD.Zhou@moxa.com>
-##############################################################################*/
-
+/*
+ * Copyright (C) MOXA Inc. All rights reserved.
+ *
+ * This software is distributed under the terms of the
+ * Apache License.
+ *
+ * Purpose : Push button device
+ * Return : 0 on success; Other wise, modification failed.
+ * Author : Lock Lin
+ * Date : 2014-03-17
+ * Version : 1.0
+ * Notes :
+ * 2016-2017 Fero JD Zhou <FeroJD.Zhou@moxa.com>
+ */
 
 #include <stdint.h>
 #include <linux/input.h>
@@ -127,7 +126,7 @@ static void action_handler(int fd, struct action *list, int len)
 
 int main(int argc, char **argv)
 {
-	int i, fd, ret, rd, len=0;
+	int i, fd, ret, rd, len = 0;
 	struct input_event ev[64];
 	struct action *list;
 
@@ -159,9 +158,10 @@ int main(int argc, char **argv)
 			action_handler(fd, list, len);
 		}
 	}
-	for (i=0; i<len; i++) {
+
+	for (i = 0; i < len; i++)
 		free(list[i].release);
-	}
+
 	free(list);
 	mx_close_device(fd);
 }
