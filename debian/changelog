@@ -1,5 +1,9 @@
-moxa-pushbtn (1.0.0+deb9) stretch; urgency=low
+moxa-push-button (1.0.0+deb9) stretch; urgency=low
 
+  [ Fero JD Zhou ]
   * Initial release.
 
- -- Fero JD Zhou <FeroJD.Zhou@moxa.com>  Sat, 18 Nov 2017 00:08:04 +0800
+  [ SZ Lin (林上智) ]
+  * Rename this package
+
+ -- SZ Lin (林上智) <sz.lin@moxa.com>  Sat, 23 Dec 2017 14:32:38 +0800
