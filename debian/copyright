@@ -3,11 +3,12 @@ Upstream-Name: moxa-pushbtn
 Source: http://gitlab.syssw.moxa.com:8888/MXcore-Package/moxa-push-button
 
 Files: *
-Copyright: 2017 Fero JD Zhou <FeroJD.Zhou@moxa.com>
+Copyright: 2017 MXcore
 License:   Apache-2.0
 
 Files: debian/*
 Copyright: 2017 Fero JD Zhou <FeroJD.Zhou@moxa.com>
+           2017 SZ Lin (林上智) <sz.lin@moxa.com>
 License:   Apache-2.0
 
 License:   Apache-2.0
