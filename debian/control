@@ -11,5 +11,6 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Description: Moxa pushbtn detect program
- Detect the signal from push button and perform the cersion actions.
- Action can be turn the specified LED on/off or execute a program.
+ Detect the signal from push button and perform the certain actions.
+ Action can be turning the specified LED on/off, executing a program or
+ the combination of both.
