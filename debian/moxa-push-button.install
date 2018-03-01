@@ -1,0 +1,2 @@
+moxa-pbtnd /sbin/
+moxa-pbtn.service /lib/systemd/system/multi-user.target.wants/

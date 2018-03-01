@@ -1,17 +1,46 @@
 Source: moxa-push-button
-Section: misc
 Priority: required
-Maintainer: Fero JD Zhou <FeroJD.Zhou@moxa.com>
-Uploaders: SZ Lin (林上智) <sz.lin@moxa.com>
-Build-Depends: debhelper (>= 10), libjson-c-dev
+Maintainer: Ken CJ Chou <KenCJ.Chou@moxa.com>
+Uploaders: SZ Lin (林上智) <sz.lin@moxa.com>,
+           Fero JD Zhou <FeroJD.Zhou@moxa.com>
+Build-Depends: debhelper (>= 10), 
+               dh-exec,
+               libmoxa-led-control-dev (>= 1.1.0),
+               libmoxa-errno-dev (>= 1.0.0),
+               libjson-c-dev
 Standards-Version: 4.1.2
+Section: libs
 Homepage: https://www.moxa.com/
+
+Package: libmoxa-push-button1
+Architecture: any
+Multi-Arch: same
+Pre-Depends: ${misc:Pre-Depends}
+Depends: ${shlibs:Depends},
+         ${misc:Depends},
+         libmoxa-led-control1 (>= 1.1.0),
+         libjson-c3
+Description: Moxa Push button library - shared library
+ Push button library can detect if the button is pushed 
+ and trigger registered actions.
+
+Package: libmoxa-push-button-dev
+Architecture: any
+Multi-Arch: same
+Section: libdevel
+Depends: libmoxa-push-button1 (= ${binary:Version}),
+         ${misc:Depends}
+Description: Moxa Push button library - development files
+ Push button library can detect if the button is pushed 
+ and trigger registered actions.
 
 Package: moxa-push-button
 Architecture: any
-Depends: ${shlibs:Depends},
+Section: utils
+Depends: libmoxa-push-button1 (= ${binary:Version}),
+         ${shlibs:Depends},
          ${misc:Depends}
-Description: Moxa pushbtn detect program
+Description: Moxa pushbtn daemon
  Detect the signal from push button and perform the certain actions.
  Action can be turning the specified LED on/off, executing a program or
  the combination of both.

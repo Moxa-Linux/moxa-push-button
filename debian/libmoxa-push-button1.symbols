@@ -1,0 +1,9 @@
+libmx_push_btn.so.1 libmoxa-push-button1 #MINVER#
+ mx_pbtn_init@Base 1.1.0
+ mx_pbtn_open@Base 1.1.0
+ mx_pbtn_close@Base 1.1.0
+ mx_pbtn_wait@Base 1.1.0
+ mx_pbtn_is_pressed@Base 1.1.0
+ mx_pbtn_pressed_event@Base 1.1.0
+ mx_pbtn_released_event@Base 1.1.0
+ mx_pbtn_hold_event@Base 1.1.0
