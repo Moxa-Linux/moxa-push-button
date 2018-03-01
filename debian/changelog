@@ -1,3 +1,11 @@
+moxa-push-button (1.1.0+deb9) stretch; urgency=low
+
+  * Remove old version of mx-pbtn daemon and LED library codes.
+  * Add new mx_pbtn library codes and new moxa-pbtnd daemon code.
+  * Redefine deb packaging
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Sat, 24 Feb 2018 14:30:00 +0800
+
 moxa-push-button (1.0.0+deb9) stretch; urgency=low
 
   [ Fero JD Zhou ]
