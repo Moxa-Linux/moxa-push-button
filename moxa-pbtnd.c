@@ -23,55 +23,96 @@
 #define CONF_FILE "/etc/moxa-configs/moxa-push-button.json"
 
 static struct json_object *config;
+extern char mx_errmsg[256];
 
 /*
  * json-c utilities
  */
 
-static struct json_object *obj_get_obj(struct json_object *obj, char *key)
+static inline int obj_get_obj(struct json_object *obj, char *key, struct json_object **val)
 {
-	struct json_object *val;
-
-	if (!json_object_object_get_ex(obj, key, &val)) {
-		fprintf(stderr, "json-c parsing error at key: %s\n", key);
-		exit(-1);
+	if (!json_object_object_get_ex(obj, key, val)) {
+		fprintf(stderr, "json-c: can\'t get key: \"%s\"", key);
+		return -1;
 	}
-	return val;
+	return 0;
 }
 
-static inline int obj_get_int(struct json_object *obj, char *key)
+static int obj_get_int(struct json_object *obj, char *key, int *val)
 {
-	return json_object_get_int(obj_get_obj(obj, key));
+	struct json_object *tmp;
+
+	if (obj_get_obj(obj, key, &tmp) < 0)
+		return -1;
+
+	*val = json_object_get_int(tmp);
+	return 0;
 }
 
-static inline const char *obj_get_str(struct json_object *obj, char *key)
+static int obj_get_str(struct json_object *obj, char *key, const char **val)
 {
-	return json_object_get_string(obj_get_obj(obj, key));
+	struct json_object *tmp;
+
+	if (obj_get_obj(obj, key, &tmp) < 0)
+		return -1;
+
+	*val = json_object_get_string(tmp);
+	return 0;
 }
 
-static inline struct array_list *obj_get_arr(struct json_object *obj, char *key)
+static int obj_get_arr(struct json_object *obj, char *key, struct array_list **val)
 {
-	return json_object_get_array(obj_get_obj(obj, key));
+	struct json_object *tmp;
+
+	if (obj_get_obj(obj, key, &tmp) < 0)
+		return -1;
+
+	*val = json_object_get_array(tmp);
+	return 0;
 }
 
-static inline struct json_object *arr_get_obj(struct array_list *arr, int idx)
+static int arr_get_obj(struct array_list *arr, int idx, struct json_object **val)
 {
-	return array_list_get_idx(arr, idx);
+	if (arr == NULL || idx >= arr->length) {
+		fprintf(stderr, "json-c: can\'t get index: %d", idx);
+		return -1;
+	}
+
+	*val = array_list_get_idx(arr, idx);
+	return 0;
 }
 
-static inline int arr_get_int(struct array_list *arr, int idx)
+static int arr_get_int(struct array_list *arr, int idx, int *val)
 {
-	return json_object_get_int(array_list_get_idx(arr, idx));
+	struct json_object *tmp;
+
+	if (arr_get_obj(arr, idx, &tmp) < 0)
+		return -1;
+
+	*val = json_object_get_int(tmp);
+	return 0;
 }
 
-static inline const char *arr_get_str(struct array_list *arr, int idx)
+static int arr_get_str(struct array_list *arr, int idx, const char **val)
 {
-	return json_object_get_string(array_list_get_idx(arr, idx));
+	struct json_object *tmp;
+
+	if (arr_get_obj(arr, idx, &tmp) < 0)
+		return -1;
+
+	*val = json_object_get_string(tmp);
+	return 0;
 }
 
-static inline struct array_list *arr_get_arr(struct array_list *arr, int idx)
+static int arr_get_arr(struct array_list *arr, int idx, struct array_list **val)
 {
-	return json_object_get_array(array_list_get_idx(arr, idx));
+	struct json_object *tmp;
+
+	if (arr_get_obj(arr, idx, &tmp) < 0)
+		return -1;
+
+	*val = json_object_get_array(tmp);
+	return 0;
 }
 
 /*
@@ -85,38 +126,61 @@ static void init(void)
 
 	obj = json_object_from_file(CONF_FILE);
 	if (obj == NULL) {
-		fprintf(stderr, "failed to open config file: %s\n", CONF_FILE);
-		exit(-1);
+		fprintf(stderr, "json-c: load file %s failed\n", CONF_FILE);
+		exit(1);
 	}
 
-	arr = obj_get_arr(obj, "DEFAULT_ACTIONS");
-	config = arr_get_obj(arr, 0);
+	if (obj_get_arr(obj, "DEFAULT_ACTIONS", &arr) < 0)
+		exit(1);
+
+	if (arr_get_obj(arr, 0, &config) < 0)
+		exit(1);
 }
 
 void do_action(struct json_object *action)
 {
 	int group, index;
-	const char *state;
+	const char *state, *message, *cmd;
 
-	group = obj_get_int(action, "LED_GROUP");
-	index = obj_get_int(action, "LED_INDEX");
-	state = obj_get_str(action, "LED_STATE");
+	if (obj_get_int(action, "LED_GROUP", &group) < 0)
+		exit(1);
+	if (obj_get_int(action, "LED_INDEX", &index) < 0)
+		exit(1);
+	if (obj_get_str(action, "LED_STATE", &state) < 0)
+		exit(1);
 
-	mx_led_set_type_all(LED_TYPE_PROGRAMMABLE, LED_STATE_OFF);
-
-	if (strcmp(state, "off") == 0) {
-		mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
-			group, index, LED_STATE_OFF);
-	} else if (strcmp(state, "on") == 0) {
-		mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
-			group, index, LED_STATE_ON);
-	} else if (strcmp(state, "blink") == 0) {
-		mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
-			group, index, LED_STATE_BLINK);
+	if (mx_led_set_type_all(LED_TYPE_PROGRAMMABLE, LED_STATE_OFF) < 0) {
+		fprintf(stderr, "%s\n", mx_errmsg);
+		exit(2);
 	}
 
-	printf("%s\n", obj_get_str(action, "MESSAGE"));
-	system(obj_get_str(action, "EXEC_CMD"));
+	if (strcmp(state, "off") == 0) {
+		if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
+			group, index, LED_STATE_OFF) < 0) {
+			fprintf(stderr, "%s\n", mx_errmsg);
+			exit(2);
+		}
+	} else if (strcmp(state, "on") == 0) {
+		if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
+			group, index, LED_STATE_ON) < 0) {
+			fprintf(stderr, "%s\n", mx_errmsg);
+			exit(2);
+		}
+	} else if (strcmp(state, "blink") == 0) {
+		if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
+			group, index, LED_STATE_BLINK) < 0) {
+			fprintf(stderr, "%s\n", mx_errmsg);
+			exit(2);
+		}
+	}
+
+	if (obj_get_str(action, "MESSAGE", &message) < 0)
+		exit(1);
+	printf("%s\n", message);
+
+	if (obj_get_str(action, "EXEC_CMD", &cmd) < 0)
+		exit(1);
+	system(cmd);
 }
 
 void pressed_func(int sec)
@@ -124,8 +188,12 @@ void pressed_func(int sec)
 	struct array_list *actions;
 	struct json_object *action;
 
-	actions = obj_get_arr(config, "PRESS_ACTION");
-	action = arr_get_obj(actions, 0);
+	if (obj_get_arr(config, "PRESS_ACTION", &actions) < 0)
+		exit(1);
+
+	if (arr_get_obj(actions, 0, &action) < 0)
+		exit(1);
+
 	do_action(action);
 }
 
@@ -135,10 +203,14 @@ void released_func(int sec)
 	struct json_object *action;
 	int i, t;
 
-	actions = obj_get_arr(config, "RELEASE_ACTION");
+	if (obj_get_arr(config, "RELEASE_ACTION", &actions) < 0)
+		exit(1);
 	for (i = 0; i < array_list_length(actions); i++) {
-		action = arr_get_obj(actions, i);
-		t = obj_get_int(action, "SEC");
+		if (arr_get_obj(actions, i, &action) < 0)
+			exit(1);
+
+		if (obj_get_int(action, "SEC", &t) < 0)
+			exit(1);
 
 		if (sec >= t) {
 			do_action(action);
@@ -153,10 +225,14 @@ void hold_func(int sec)
 	struct json_object *action;
 	int i, t;
 
-	actions = obj_get_arr(config, "HOLD_ACTION");
+	if (obj_get_arr(config, "HOLD_ACTION", &actions) < 0)
+		exit(1);
 	for (i = 0; i < array_list_length(actions); i++) {
-		action = arr_get_obj(actions, i);
-		t = obj_get_int(action, "SEC");
+		if (arr_get_obj(actions, i, &action) < 0)
+			exit(1);
+
+		if (obj_get_int(action, "SEC", &t) < 0)
+			exit(1);
 
 		if (sec > t) {
 			break;
@@ -172,20 +248,45 @@ int main(int argc, char *argv[])
 	int btn_id;
 
 	init();
-	mx_pbtn_init();
-	mx_led_init();
+	if (mx_pbtn_init() < 0) {
+		fprintf(stderr, "Initialize Moxa push button library failed\n");
+		fprintf(stderr, "%s\n", mx_errmsg);
+		exit(3);
+	}
+	if (mx_led_init() < 0) {
+		fprintf(stderr, "Initialize Moxa LED control library failed\n");
+		fprintf(stderr, "%s\n", mx_errmsg);
+		exit(2);
+	}
 
 	btn_id = mx_pbtn_open(BUTTON_TYPE_SYSTEM, 1);
-	if (btn_id < 0)
-		exit(-1);
+	if (btn_id < 0) {
+		fprintf(stderr, "%s\n", mx_errmsg);
+		exit(3);
+	}
 
-	mx_pbtn_pressed_event(btn_id, &pressed_func);
-	mx_pbtn_released_event(btn_id, &released_func);
-	mx_pbtn_hold_event(btn_id, &hold_func, DURATION_EVERY);
+	if (mx_pbtn_pressed_event(btn_id, &pressed_func) < 0) {
+		fprintf(stderr, "%s\n", mx_errmsg);
+		exit(3);
+	}
+	if (mx_pbtn_released_event(btn_id, &released_func) < 0) {
+		fprintf(stderr, "%s\n", mx_errmsg);
+		exit(3);
+	}
+	if (mx_pbtn_hold_event(btn_id, &hold_func, DURATION_EVERY) < 0) {
+		fprintf(stderr, "%s\n", mx_errmsg);
+		exit(3);
+	}
 
-	mx_pbtn_wait();
+	if (mx_pbtn_wait() < 0) {
+		fprintf(stderr, "%s\n", mx_errmsg);
+		exit(3);
+	}
 
-	mx_pbtn_close(btn_id);
+	if (mx_pbtn_close(btn_id) < 0) {
+		fprintf(stderr, "%s\n", mx_errmsg);
+		exit(3);
+	}
 
 	exit(0);
 }

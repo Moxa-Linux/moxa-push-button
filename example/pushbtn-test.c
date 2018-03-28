@@ -16,6 +16,8 @@
 #include <stdlib.h>
 #include <moxa/mx_pbtn.h>
 
+extern char mx_errmsg[256];
+
 void pressed_func(int sec)
 {
 	printf("\t--------\n");
@@ -54,6 +56,7 @@ int main(int argc, char *argv[])
 	if (ret < 0) {
 		fprintf(stderr, "Initialize Moxa pbtn control library failed\n");
 		fprintf(stderr, "Error code: %d\n", ret);
+		fprintf(stderr, "Error message: %s\n", mx_errmsg);
 		exit(1);
 	}
 
@@ -63,6 +66,7 @@ int main(int argc, char *argv[])
 	if (btn_id < 0) {
 		fprintf(stderr, "Open button failed\n");
 		fprintf(stderr, "Error code: %d\n", btn_id);
+		fprintf(stderr, "Error message: %s\n", mx_errmsg);
 		exit(1);
 	}
 
@@ -70,6 +74,7 @@ int main(int argc, char *argv[])
 	if (ret < 0) {
 		fprintf(stderr, "Set pressed function failed\n");
 		fprintf(stderr, "Error code: %d\n", ret);
+		fprintf(stderr, "Error message: %s\n", mx_errmsg);
 		exit(1);
 	}
 
@@ -77,6 +82,7 @@ int main(int argc, char *argv[])
 	if (ret < 0) {
 		fprintf(stderr, "Set released function failed\n");
 		fprintf(stderr, "Error code: %d\n", ret);
+		fprintf(stderr, "Error message: %s\n", mx_errmsg);
 		exit(1);
 	}
 
@@ -84,6 +90,7 @@ int main(int argc, char *argv[])
 	if (ret < 0) {
 		fprintf(stderr, "Set hold function failed\n");
 		fprintf(stderr, "Error code: %d\n", ret);
+		fprintf(stderr, "Error message: %s\n", mx_errmsg);
 		exit(1);
 	}
 
