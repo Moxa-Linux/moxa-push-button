@@ -31,10 +31,8 @@ extern char mx_errmsg[256];
 
 static inline int obj_get_obj(struct json_object *obj, char *key, struct json_object **val)
 {
-	if (!json_object_object_get_ex(obj, key, val)) {
-		fprintf(stderr, "json-c: can\'t get key: \"%s\"", key);
+	if (!json_object_object_get_ex(obj, key, val))
 		return -1;
-	}
 	return 0;
 }
 
@@ -73,10 +71,8 @@ static int obj_get_arr(struct json_object *obj, char *key, struct array_list **v
 
 static int arr_get_obj(struct array_list *arr, int idx, struct json_object **val)
 {
-	if (arr == NULL || idx >= arr->length) {
-		fprintf(stderr, "json-c: can\'t get index: %d", idx);
+	if (arr == NULL || idx >= arr->length)
 		return -1;
-	}
 
 	*val = array_list_get_idx(arr, idx);
 	return 0;
@@ -142,45 +138,40 @@ void do_action(struct json_object *action)
 	int group, index;
 	const char *state, *message, *cmd;
 
-	if (obj_get_int(action, "LED_GROUP", &group) < 0)
-		exit(1);
-	if (obj_get_int(action, "LED_INDEX", &index) < 0)
-		exit(1);
-	if (obj_get_str(action, "LED_STATE", &state) < 0)
-		exit(1);
-
-	if (mx_led_set_type_all(LED_TYPE_PROGRAMMABLE, LED_STATE_OFF) < 0) {
-		fprintf(stderr, "%s\n", mx_errmsg);
-		exit(2);
-	}
-
-	if (strcmp(state, "off") == 0) {
-		if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
-			group, index, LED_STATE_OFF) < 0) {
+	if ((obj_get_int(action, "LED_GROUP", &group) == 0) &&
+		(obj_get_int(action, "LED_INDEX", &index) == 0) &&
+		(obj_get_str(action, "LED_STATE", &state) == 0)) {
+		if (mx_led_set_type_all(LED_TYPE_PROGRAMMABLE, LED_STATE_OFF) < 0) {
 			fprintf(stderr, "%s\n", mx_errmsg);
 			exit(2);
 		}
-	} else if (strcmp(state, "on") == 0) {
-		if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
-			group, index, LED_STATE_ON) < 0) {
-			fprintf(stderr, "%s\n", mx_errmsg);
-			exit(2);
-		}
-	} else if (strcmp(state, "blink") == 0) {
-		if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
-			group, index, LED_STATE_BLINK) < 0) {
-			fprintf(stderr, "%s\n", mx_errmsg);
-			exit(2);
+
+		if (strcmp(state, "off") == 0) {
+			if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
+				group, index, LED_STATE_OFF) < 0) {
+				fprintf(stderr, "%s\n", mx_errmsg);
+				exit(2);
+			}
+		} else if (strcmp(state, "on") == 0) {
+			if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
+				group, index, LED_STATE_ON) < 0) {
+				fprintf(stderr, "%s\n", mx_errmsg);
+				exit(2);
+			}
+		} else if (strcmp(state, "blink") == 0) {
+			if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
+				group, index, LED_STATE_BLINK) < 0) {
+				fprintf(stderr, "%s\n", mx_errmsg);
+				exit(2);
+			}
 		}
 	}
 
-	if (obj_get_str(action, "MESSAGE", &message) < 0)
-		exit(1);
-	printf("%s\n", message);
+	if (obj_get_str(action, "MESSAGE", &message) == 0)
+		printf("%s\n", message);
 
-	if (obj_get_str(action, "EXEC_CMD", &cmd) < 0)
-		exit(1);
-	system(cmd);
+	if (obj_get_str(action, "EXEC_CMD", &cmd) == 0)
+		system(cmd);
 }
 
 void pressed_func(int sec)
