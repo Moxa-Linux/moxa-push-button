@@ -1,3 +1,9 @@
+moxa-push-button (1.1.1+deb9) stretch; urgency=low
+
+  * fix: set conditional action to configs
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Fri, 17 Aug 2018 18:07:00 +0800
+
 moxa-push-button (1.1.0+deb9) stretch; urgency=low
 
   * Remove old version of mx-pbtn daemon and LED library codes.
