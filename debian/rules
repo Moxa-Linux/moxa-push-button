@@ -14,10 +14,14 @@ STRIP := $(DEB_HOST_GNU_TYPE)-strip
 endif
 
 %:
-	dh $@
+	dh $@ --with=systemd
 
 override_dh_auto_build:
 	$(MAKE) CC=$(CC) STRIP=$(STRIP)
+
+override_dh_installinit:
+	dh_systemd_enable -pmoxa-push-button --name=moxa-push-button moxa-push-button.service
+	dh_installinit -pmoxa-push-button --no-start --noscripts
 
 override_dh_missing:
 	dh_missing --fail-missing
