@@ -19,7 +19,6 @@ Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         libmoxa-led-control1 (>= 1.1.0),
          libjson-c3
 Description: Moxa Push button library - shared library
  Push button library can detect if the button is pushed 
@@ -39,6 +38,7 @@ Package: moxa-push-button
 Architecture: any
 Section: utils
 Depends: libmoxa-push-button1 (= ${binary:Version}),
+         libmoxa-led-control1 (>= 1.1.0),
          ${shlibs:Depends},
          ${misc:Depends}
 Description: Moxa pushbtn daemon
