@@ -14,7 +14,7 @@ Section: libs
 Homepage: https://www.moxa.com/
 
 Package: libmoxa-push-button1
-Architecture: any
+Architecture: linux-any
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${shlibs:Depends},
@@ -25,7 +25,7 @@ Description: Moxa Push button library - shared library
  and trigger registered actions.
 
 Package: libmoxa-push-button-dev
-Architecture: any
+Architecture: linux-any
 Multi-Arch: same
 Section: libdevel
 Depends: libmoxa-push-button1 (= ${binary:Version}),
@@ -35,7 +35,7 @@ Description: Moxa Push button library - development files
  and trigger registered actions.
 
 Package: moxa-push-button
-Architecture: any
+Architecture: linux-any
 Section: utils
 Depends: libmoxa-push-button1 (= ${binary:Version}),
          libmoxa-led-control1 (>= 1.1.0),
