@@ -1,0 +1,12 @@
+[Unit]
+Description=Moxa push button daemon
+Before=rc.local.service
+
+[Service]
+ExecStart=/sbin/moxa-pbtnd
+ExecStop=/usr/bin/pkill moxa-pbtnd
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target poweroff.target
+
