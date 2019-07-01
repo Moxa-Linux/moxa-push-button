@@ -17,8 +17,7 @@
 #include <string.h>
 #include <json-c/json.h>
 #include <moxa/mx_led.h>
-
-#include "mx_pbtn.h"
+#include <mx_pbtn.h>
 
 #define CONF_FILE "/etc/moxa-configs/moxa-push-button.json"
 

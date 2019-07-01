@@ -22,8 +22,7 @@
 #include <linux/input.h>
 #include <json-c/json.h>
 #include <moxa/mx_errno.h>
-
-#include "mx_pbtn.h"
+#include <mx_pbtn.h>
 
 #define CONF_FILE "/etc/moxa-configs/moxa-push-button.json"
 #define CONF_VER_SUPPORTED "1.1.*"
