@@ -22,7 +22,6 @@
 #define CONF_FILE "/etc/moxa-configs/moxa-push-button.json"
 
 static struct json_object *config;
-extern char mx_errmsg[256];
 
 /*
  * json-c utilities
@@ -140,29 +139,21 @@ void do_action(struct json_object *action)
 	if ((obj_get_int(action, "LED_GROUP", &group) == 0) &&
 		(obj_get_int(action, "LED_INDEX", &index) == 0) &&
 		(obj_get_str(action, "LED_STATE", &state) == 0)) {
-		if (mx_led_set_type_all(LED_TYPE_PROGRAMMABLE, LED_STATE_OFF) < 0) {
-			fprintf(stderr, "%s\n", mx_errmsg);
+		if (mx_led_set_type_all(LED_TYPE_PROGRAMMABLE, LED_STATE_OFF) < 0)
 			exit(2);
-		}
 
 		if (strcmp(state, "off") == 0) {
 			if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
-				group, index, LED_STATE_OFF) < 0) {
-				fprintf(stderr, "%s\n", mx_errmsg);
+				group, index, LED_STATE_OFF) < 0)
 				exit(2);
-			}
 		} else if (strcmp(state, "on") == 0) {
 			if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
-				group, index, LED_STATE_ON) < 0) {
-				fprintf(stderr, "%s\n", mx_errmsg);
+				group, index, LED_STATE_ON) < 0)
 				exit(2);
-			}
 		} else if (strcmp(state, "blink") == 0) {
 			if (mx_led_set_brightness(LED_TYPE_PROGRAMMABLE,
-				group, index, LED_STATE_BLINK) < 0) {
-				fprintf(stderr, "%s\n", mx_errmsg);
+				group, index, LED_STATE_BLINK) < 0)
 				exit(2);
-			}
 		}
 	}
 
@@ -240,43 +231,28 @@ int main(int argc, char *argv[])
 	init();
 	if (mx_pbtn_init() < 0) {
 		fprintf(stderr, "Initialize Moxa push button library failed\n");
-		fprintf(stderr, "%s\n", mx_errmsg);
 		exit(3);
 	}
 	if (mx_led_init() < 0) {
 		fprintf(stderr, "Initialize Moxa LED control library failed\n");
-		fprintf(stderr, "%s\n", mx_errmsg);
 		exit(2);
 	}
 
 	btn_id = mx_pbtn_open(BUTTON_TYPE_SYSTEM, 1);
-	if (btn_id < 0) {
-		fprintf(stderr, "%s\n", mx_errmsg);
+	if (btn_id < 0)
 		exit(3);
-	}
+	if (mx_pbtn_pressed_event(btn_id, &pressed_func) < 0)
+		exit(3);
+	if (mx_pbtn_released_event(btn_id, &released_func) < 0)
+		exit(3);
+	if (mx_pbtn_hold_event(btn_id, &hold_func, DURATION_EVERY) < 0)
+		exit(3);
 
-	if (mx_pbtn_pressed_event(btn_id, &pressed_func) < 0) {
-		fprintf(stderr, "%s\n", mx_errmsg);
+	if (mx_pbtn_wait() < 0)
 		exit(3);
-	}
-	if (mx_pbtn_released_event(btn_id, &released_func) < 0) {
-		fprintf(stderr, "%s\n", mx_errmsg);
-		exit(3);
-	}
-	if (mx_pbtn_hold_event(btn_id, &hold_func, DURATION_EVERY) < 0) {
-		fprintf(stderr, "%s\n", mx_errmsg);
-		exit(3);
-	}
 
-	if (mx_pbtn_wait() < 0) {
-		fprintf(stderr, "%s\n", mx_errmsg);
+	if (mx_pbtn_close(btn_id) < 0)
 		exit(3);
-	}
-
-	if (mx_pbtn_close(btn_id) < 0) {
-		fprintf(stderr, "%s\n", mx_errmsg);
-		exit(3);
-	}
 
 	exit(0);
 }
