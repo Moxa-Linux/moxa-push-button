@@ -1,3 +1,11 @@
+moxa-push-button (1.1.3+deb9) stretch; urgency=low
+
+  * Remove mx_errmsg.
+  * Change install directory for libmx_uart_ctl.so*
+    from `/lib/<arch>` to `/usr/lib/<arch>`.
+
+ -- Ken CJ Chou <KenCJ.Chou@moxa.com>  Wed, 3 Jul 2019 17:44:00 +0800
+
 moxa-push-button (1.1.2+deb9) stretch; urgency=low
 
   * fix: use debian/service instead of directly install
