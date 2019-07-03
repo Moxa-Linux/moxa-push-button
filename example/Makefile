@@ -1,9 +1,7 @@
-CC := gcc
-STRIP := strip
+CC ?= gcc
 
 all:
 	$(CC) -Wall -lmx_push_btn pushbtn-test.c -o pushbtn-test
-	$(STRIP) -s pushbtn-test
 
 .PHONY: clean
 clean:

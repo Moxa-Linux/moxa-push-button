@@ -21,9 +21,7 @@
 #include <sys/file.h>
 #include <linux/input.h>
 #include <json-c/json.h>
-#include <moxa/mx_errno.h>
-
-#include "mx_pbtn.h"
+#include <mx_pbtn.h>
 
 #define CONF_FILE "/etc/moxa-configs/moxa-push-button.json"
 #define CONF_VER_SUPPORTED "1.1.*"
@@ -43,7 +41,6 @@ struct button_struct {
 static int lib_initialized;
 static struct json_object *config;
 static struct button_struct *buttons;
-extern char mx_errmsg[256];
 
 /*
  * json-c utilities
@@ -51,10 +48,8 @@ extern char mx_errmsg[256];
 
 static inline int obj_get_obj(struct json_object *obj, char *key, struct json_object **val)
 {
-	if (!json_object_object_get_ex(obj, key, val)) {
-		sprintf(mx_errmsg, "json-c: can\'t get key: \"%s\"", key);
+	if (!json_object_object_get_ex(obj, key, val))
 		return -1;
-	}
 	return 0;
 }
 
@@ -93,10 +88,8 @@ static int obj_get_arr(struct json_object *obj, char *key, struct array_list **v
 
 static int arr_get_obj(struct array_list *arr, int idx, struct json_object **val)
 {
-	if (arr == NULL || idx >= arr->length) {
-		sprintf(mx_errmsg, "json-c: can\'t get index: %d", idx);
+	if (arr == NULL || idx >= arr->length)
 		return -1;
-	}
 
 	*val = array_list_get_idx(arr, idx);
 	return 0;
@@ -143,21 +136,15 @@ static int check_config_version_supported(const char *conf_ver)
 {
 	int cv[2], sv[2];
 
-	if (sscanf(conf_ver, "%d.%d.%*s", &cv[0], &cv[1]) < 0) {
-		sprintf(mx_errmsg, "sscanf: %s: %s", conf_ver, strerror(errno));
-		return E_SYSFUNCERR;
-	}
+	if (sscanf(conf_ver, "%d.%d.%*s", &cv[0], &cv[1]) < 0)
+		return -1; /* E_SYSFUNCERR */
 
-	if (sscanf(CONF_VER_SUPPORTED, "%d.%d.%*s", &sv[0], &sv[1]) < 0) {
-		sprintf(mx_errmsg, "sscanf: %s: %s", CONF_VER_SUPPORTED, strerror(errno));
-		return E_SYSFUNCERR;
-	}
+	if (sscanf(CONF_VER_SUPPORTED, "%d.%d.%*s", &sv[0], &sv[1]) < 0)
+		return -1; /* E_SYSFUNCERR */
 
-	if (cv[0] != sv[0] || cv[1] != sv[1]) {
-		sprintf(mx_errmsg, "Config version not supported, need to be %s", CONF_VER_SUPPORTED);
-		return E_UNSUPCONFVER;
-	}
-	return E_SUCCESS;
+	if (cv[0] != sv[0] || cv[1] != sv[1])
+		return -4; /* E_UNSUPCONFVER */
+	return 0;
 }
 
 static int get_button(int btn_id, struct button_struct **button)
@@ -165,15 +152,13 @@ static int get_button(int btn_id, struct button_struct **button)
 	int num_of_all_btns;
 
 	if (obj_get_int(config, "NUM_OF_ALL_BUTTONS", &num_of_all_btns) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
-	if (btn_id < 0 || btn_id > num_of_all_btns - 1) {
-		sprintf(mx_errmsg, "Button ID out of index: %d", btn_id);
-		return E_INVAL;
-	}
+	if (btn_id < 0 || btn_id > num_of_all_btns - 1)
+		return -2; /* E_INVAL */
 
 	*button = &buttons[btn_id];
-	return E_SUCCESS;
+	return 0;
 }
 
 static int detect_input(int fd)
@@ -254,30 +239,26 @@ int mx_pbtn_init(void)
 	const char *conf_ver;
 
 	if (lib_initialized)
-		return E_SUCCESS;
+		return 0;
 
 	config = json_object_from_file(CONF_FILE);
-	if (config == NULL) {
-		sprintf(mx_errmsg, "json-c: load file %s failed", CONF_FILE);
-		return E_CONFERR;
-	}
+	if (config == NULL)
+		return -5; /* E_CONFERR */
 
 	if (obj_get_str(config, "CONFIG_VERSION", &conf_ver) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	ret = check_config_version_supported(conf_ver);
 	if (ret < 0)
 		return ret;
 
 	if (obj_get_int(config, "NUM_OF_ALL_BUTTONS", &num_of_all_btns) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	buttons = (struct button_struct *)
 		malloc(num_of_all_btns * sizeof(struct button_struct));
-	if (buttons == NULL) {
-		sprintf(mx_errmsg, "malloc: %s", strerror(errno));
-		return E_SYSFUNCERR;
-	}
+	if (buttons == NULL)
+		return -1; /* E_SYSFUNCERR */
 
 	for (i = 0; i < num_of_all_btns; i++) {
 		buttons[i].is_opened = 0;
@@ -287,7 +268,7 @@ int mx_pbtn_init(void)
 	}
 
 	lib_initialized = 1;
-	return E_SUCCESS;
+	return 0;
 }
 
 int mx_pbtn_open(int type, int index)
@@ -298,26 +279,24 @@ int mx_pbtn_open(int type, int index)
 	const char *filepath;
 	int ret, btn_id;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	if (obj_get_arr(config, "BUTTON_TYPES", &btn_types) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	if (arr_get_obj(btn_types, BUTTON_TYPE_SYSTEM, &btn_type_info) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	btn_id = index - 1;
 	if (type == BUTTON_TYPE_USER) {
 		int sys_btn_num;
 
 		if (obj_get_int(btn_type_info, "NUM_OF_BUTTONS", &sys_btn_num) < 0)
-			return E_CONFERR;
+			return -5; /* E_CONFERR */
 		btn_id += sys_btn_num;
 		if (arr_get_obj(btn_types, BUTTON_TYPE_USER, &btn_type_info) < 0)
-			return E_CONFERR;
+			return -5; /* E_CONFERR */
 	}
 
 	ret = get_button(btn_id, &button);
@@ -325,19 +304,17 @@ int mx_pbtn_open(int type, int index)
 		return ret;
 
 	if (button->is_opened == 1)
-		return E_SUCCESS;
+		return 0;
 
 	if (obj_get_arr(btn_type_info, "PATHS", &btn_paths) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	if (arr_get_str(btn_paths, index - 1, &filepath) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	button->fd = open(filepath, O_RDONLY);
-	if (button->fd < 0) {
-		sprintf(mx_errmsg, "open %s: %s", filepath, strerror(errno));
-		return E_SYSFUNCERR;
-	}
+	if (button->fd < 0)
+		return -1; /* E_SYSFUNCERR */
 	flock(button->fd, LOCK_EX);
 
 	pthread_create(&button->thread, NULL, thread_start, button);
@@ -351,17 +328,15 @@ int mx_pbtn_close(int btn_id)
 	struct button_struct *button;
 	int ret;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	ret = get_button(btn_id, &button);
 	if (ret < 0)
 		return ret;
 
 	if (button->is_opened == 0)
-		return E_SUCCESS;
+		return 0;
 
 	pthread_cancel(button->thread);
 	close(button->fd);
@@ -369,7 +344,7 @@ int mx_pbtn_close(int btn_id)
 	button->released_func = NULL;
 	button->hold_func = NULL;
 	button->is_opened = 0;
-	return E_SUCCESS;
+	return 0;
 }
 
 int mx_pbtn_wait(void)
@@ -377,13 +352,11 @@ int mx_pbtn_wait(void)
 	struct button_struct *button;
 	int ret, btn_num, i = 0;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	if (obj_get_int(config, "NUM_OF_ALL_BUTTONS", &btn_num) < 0)
-		return E_CONFERR;
+		return -5; /* E_CONFERR */
 
 	while (i < btn_num) {
 		ret = get_button(i, &button);
@@ -397,7 +370,7 @@ int mx_pbtn_wait(void)
 			i++;
 		}
 	}
-	return E_SUCCESS;
+	return 0;
 }
 
 int mx_pbtn_is_pressed(int btn_id)
@@ -405,19 +378,15 @@ int mx_pbtn_is_pressed(int btn_id)
 	struct button_struct *button;
 	int ret;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	ret = get_button(btn_id, &button);
 	if (ret < 0)
 		return ret;
 
-	if (button->is_opened != 1) {
-		sprintf(mx_errmsg, "Button is not opened");
-		return E_PBTN_NOTOPEN;
-	}
+	if (button->is_opened != 1)
+		return -70; /* E_PBTN_NOTOPEN */
 
 	return button->is_pressed;
 }
@@ -427,17 +396,15 @@ int mx_pbtn_pressed_event(int btn_id, void (*func)(int))
 	struct button_struct *button;
 	int ret;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	ret = get_button(btn_id, &button);
 	if (ret < 0)
 		return ret;
 
 	button->pressed_func = func;
-	return E_SUCCESS;
+	return 0;
 }
 
 int mx_pbtn_released_event(int btn_id, void (*func)(int))
@@ -445,17 +412,15 @@ int mx_pbtn_released_event(int btn_id, void (*func)(int))
 	struct button_struct *button;
 	int ret;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	ret = get_button(btn_id, &button);
 	if (ret < 0)
 		return ret;
 
 	button->released_func = func;
-	return E_SUCCESS;
+	return 0;
 }
 
 int mx_pbtn_hold_event(int btn_id, void (*func)(int), unsigned long duration)
@@ -463,21 +428,17 @@ int mx_pbtn_hold_event(int btn_id, void (*func)(int), unsigned long duration)
 	struct button_struct *button;
 	int ret;
 
-	if (!lib_initialized) {
-		sprintf(mx_errmsg, "Library is not initialized");
-		return E_LIBNOTINIT;
-	}
+	if (!lib_initialized)
+		return -3; /* E_LIBNOTINIT */
 
 	ret = get_button(btn_id, &button);
 	if (ret < 0)
 		return ret;
 
-	if (duration > 3600) {
-		sprintf(mx_errmsg, "Duration out of range: %ld", duration);
-		return E_INVAL;
-	}
+	if (duration > 3600)
+		return -2; /* E_INVAL */
 
 	button->hold_func = func;
 	button->hold_duration = duration;
-	return E_SUCCESS;
+	return 0;
 }
