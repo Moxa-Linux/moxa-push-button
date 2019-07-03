@@ -1,3 +1,2 @@
-#!/usr/bin/dh-exec
-mx_pbtn.h /usr/include/moxa/
-mx_pbtn.a /usr/lib/${DEB_HOST_MULTIARCH}/
+usr/include/moxa/mx_pbtn.h
+usr/lib/*/libmx_push_btn.so
